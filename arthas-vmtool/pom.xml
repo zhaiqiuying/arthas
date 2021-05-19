@@ -69,8 +69,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <encoding>UTF-8</encoding>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
@@ -124,18 +124,18 @@
                         <linkerEndOption>-o ${project.build.directory}/${lib_name}</linkerEndOption>
                     </linkerEndOptions>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>javah</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>javah</goal>
-                            <goal>initialize</goal>
-                            <goal>compile</goal>
-                            <goal>link</goal>
-                        </goals>
-                    </execution>
-                </executions>
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>javah</id>-->
+<!--                        <phase>compile</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>javah</goal>-->
+<!--                            <goal>initialize</goal>-->
+<!--                            <goal>compile</goal>-->
+<!--                            <goal>link</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
             </plugin>
         </plugins>
     </build>

@@ -1,5 +1,16 @@
 package com.taobao.arthas.core.advisor;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
+
+import com.google.protobuf.Message;
+import com.googlecode.protobuf.format.JsonFormat;
+import com.taobao.arthas.core.util.ObjectUtils;
+
 /**
  * 通知点 Created by vlinux on 15/5/20.
  */
@@ -77,6 +88,17 @@ public class Advice {
             Object returnObj,
             Throwable throwExp,
             int access) {
+
+        if (!ObjectUtils.isEmpty(params)) {
+            for (int i = 0; i < params.length; i++) {
+                params[i] = fromPbToJson(params[i]);
+            }
+        }
+
+        if (returnObj != null && returnObj.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
+            returnObj = fromPbToJson(returnObj);
+        }
+
         this.loader = loader;
         this.clazz = clazz;
         this.method = method;
@@ -87,6 +109,41 @@ public class Advice {
         isBefore = (access & AccessPoint.ACCESS_BEFORE.getValue()) == AccessPoint.ACCESS_BEFORE.getValue();
         isThrow = (access & AccessPoint.ACCESS_AFTER_THROWING.getValue()) == AccessPoint.ACCESS_AFTER_THROWING.getValue();
         isReturn = (access & AccessPoint.ACCESS_AFTER_RETUNING.getValue()) == AccessPoint.ACCESS_AFTER_RETUNING.getValue();
+    }
+
+    public static Object fromPbToJson(Object o) {
+        if (o != null && o.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
+            ByteArrayOutputStream baos = null;
+            ObjectOutputStream oos = null;
+            try {
+                baos = new ByteArrayOutputStream();
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(o);
+                oos.flush();
+                InputStream is = new ByteArrayInputStream(baos.toByteArray());
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (oos != null) {
+                        oos.close();
+                    }
+                    if (baos != null) {
+                        baos.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                Message.Builder builder = (Message.Builder) o.getClass().getMethod("newBuilder").invoke(null, null);
+                builder.mergeFrom(baos.toByteArray());
+                return new JsonFormat().printToString(builder.build());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return o;
     }
 
     public static Advice newForBefore(ClassLoader loader,

@@ -104,7 +104,7 @@ DEFAULT_HTTP_PORT="8563"
 SESSION_TIMEOUT=
 
 # use specify version
-USE_VERSION=
+USE_VERSION=3.5.1.20210519182923
 
 # remote repo to download arthas
 REPO_MIRROR=
