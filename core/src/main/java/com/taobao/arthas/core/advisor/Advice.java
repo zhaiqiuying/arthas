@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 
 import com.google.protobuf.Message;
 import com.googlecode.protobuf.format.JsonFormat;
@@ -89,29 +88,30 @@ public class Advice {
             Throwable throwExp,
             int access) {
 
+        this.params = params;
         if (!ObjectUtils.isEmpty(params)) {
             for (int i = 0; i < params.length; i++) {
-                params[i] = fromPbToJson(params[i]);
+                this.params[i] = fromPbToJson(loader, this.params[i]);
             }
         }
 
         if (returnObj != null && returnObj.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
-            returnObj = fromPbToJson(returnObj);
+            this.returnObj = fromPbToJson(loader, returnObj);
+        } else {
+            this.returnObj = returnObj;
         }
 
         this.loader = loader;
         this.clazz = clazz;
         this.method = method;
         this.target = target;
-        this.params = params;
-        this.returnObj = returnObj;
         this.throwExp = throwExp;
         isBefore = (access & AccessPoint.ACCESS_BEFORE.getValue()) == AccessPoint.ACCESS_BEFORE.getValue();
         isThrow = (access & AccessPoint.ACCESS_AFTER_THROWING.getValue()) == AccessPoint.ACCESS_AFTER_THROWING.getValue();
         isReturn = (access & AccessPoint.ACCESS_AFTER_RETUNING.getValue()) == AccessPoint.ACCESS_AFTER_RETUNING.getValue();
     }
 
-    public static Object fromPbToJson(Object o) {
+    public static Object fromPbToJson(ClassLoader loader, Object o) {
         if (o != null && o.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
             ByteArrayOutputStream baos = null;
             ObjectOutputStream oos = null;
@@ -136,9 +136,10 @@ public class Advice {
                 }
             }
             try {
-                Message.Builder builder = (Message.Builder) o.getClass().getMethod("newBuilder").invoke(null, null);
-                builder.mergeFrom(baos.toByteArray());
-                return new JsonFormat().printToString(builder.build());
+                return new JsonFormat().printToString((Message) o);
+//                return loader.loadClass("com.googlecode.protobuf.format.JsonFormat")
+//                        .getMethod("printToString", loader.loadClass("com.google.protobuf.Message"))
+//                        .invoke(loader.loadClass("com.googlecode.protobuf.format.JsonFormat").newInstance(), o);
             } catch (Exception e) {
                 e.printStackTrace();
             }
