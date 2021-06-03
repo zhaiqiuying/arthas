@@ -1,11 +1,23 @@
 package com.taobao.arthas.core.shell.term.impl.http.api;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.taobao.arthas.common.ArthasConstants;
 import com.taobao.arthas.common.PidUtils;
-import com.taobao.arthas.core.command.model.*;
+import com.taobao.arthas.core.command.model.CommandRequestModel;
+import com.taobao.arthas.core.command.model.InputStatus;
+import com.taobao.arthas.core.command.model.InputStatusModel;
+import com.taobao.arthas.core.command.model.MessageModel;
+import com.taobao.arthas.core.command.model.ResultModel;
+import com.taobao.arthas.core.command.model.WelcomeModel;
 import com.taobao.arthas.core.distribution.PackingResultDistributor;
 import com.taobao.arthas.core.distribution.ResultConsumer;
 import com.taobao.arthas.core.distribution.ResultDistributor;
@@ -32,20 +44,19 @@ import com.taobao.arthas.core.util.ArthasBanner;
 import com.taobao.arthas.core.util.DateUtils;
 import com.taobao.arthas.core.util.JsonUtils;
 import com.taobao.arthas.core.util.StringUtils;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import io.termd.core.function.Function;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -90,6 +101,7 @@ public class HttpApiHandler {
         String requestBody = null;
         String requestId = null;
         try {
+            logger.info("----------------------1");
             HttpMethod method = request.method();
             if (HttpMethod.POST.equals(method)) {
                 requestBody = getBody(request);
@@ -107,7 +119,7 @@ public class HttpApiHandler {
             result = createResponse(ApiState.FAILED, "The request was not processed");
         }
         result.setRequestId(requestId);
-
+        logger.info("----------------------2");
 
         //http response content
         ByteBuf content = null;
@@ -134,6 +146,7 @@ public class HttpApiHandler {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(),
                     HttpResponseStatus.OK, content.retain());
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8");
+            logger.info("----------------------3");
             writeResult(response, result);
             return response;
         } catch (Exception e) {

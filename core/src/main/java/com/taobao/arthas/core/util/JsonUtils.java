@@ -1,10 +1,19 @@
 package com.taobao.arthas.core.util;
 
-import com.alibaba.fastjson.serializer.SerializeWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializeWriter;
+import com.google.protobuf.Message;
+import com.googlecode.protobuf.format.JsonFormat;
 
 /**
  * @author gongdewei 2020/5/15
@@ -89,5 +98,51 @@ public class JsonUtils {
         }
     }
 
+    public static Object fromPbToJson(ClassLoader loader, Object o) {
+
+        try {
+            Object obj = fromPbToJsonStr(loader, o);
+            if (!obj.getClass().equals(String.class) || StringUtils.isEmpty(obj)) {
+                return obj;
+            }
+            return JSON.parse((String) obj);
+        } catch (Exception e) {
+            logger.error("fromPbToJson fail", e);
+        }
+        return o;
+    }
+
+    public static Object fromPbToJsonStr(ClassLoader loader, Object o) {
+        if (o != null && o.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
+            ByteArrayOutputStream baos = null;
+            ObjectOutputStream oos = null;
+            try {
+                baos = new ByteArrayOutputStream();
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(o);
+                oos.flush();
+            } catch (Exception e) {
+                logger.error("fromPbToJsonStr fail", e);
+                return o;
+            } finally {
+                try {
+                    if (oos != null) {
+                        oos.close();
+                    }
+                    if (baos != null) {
+                        baos.close();
+                    }
+                } catch (IOException e) {
+                    logger.error("fromPbToJsonStr fail", e);
+                }
+            }
+            try {
+                return new JsonFormat().printToString((Message) o);
+            } catch (Exception e) {
+                logger.error("fromPbToJsonStr fail", e);
+            }
+        }
+        return o;
+    }
 
 }

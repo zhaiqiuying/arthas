@@ -8,7 +8,8 @@ import java.net.URLClassLoader;
  */
 public class ArthasClassloader extends URLClassLoader {
     public ArthasClassloader(URL[] urls) {
-        super(urls, ClassLoader.getSystemClassLoader().getParent());
+        //super(urls, ClassLoader.getSystemClassLoader().getParent());
+        super(urls, ClassLoader.getSystemClassLoader());
     }
 
     @Override
@@ -20,6 +21,8 @@ public class ArthasClassloader extends URLClassLoader {
 
         // 优先从parent（SystemClassLoader）里加载系统类，避免抛出ClassNotFoundException
         if (name != null && (name.startsWith("sun.") || name.startsWith("java."))) {
+            return super.loadClass(name, resolve);
+        } else if (name != null && (name.startsWith("com.googlecode") || name.startsWith("com.google"))) {
             return super.loadClass(name, resolve);
         }
         try {
