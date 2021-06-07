@@ -101,7 +101,6 @@ public class HttpApiHandler {
         String requestBody = null;
         String requestId = null;
         try {
-            logger.info("----------------------1");
             HttpMethod method = request.method();
             if (HttpMethod.POST.equals(method)) {
                 requestBody = getBody(request);
@@ -119,7 +118,6 @@ public class HttpApiHandler {
             result = createResponse(ApiState.FAILED, "The request was not processed");
         }
         result.setRequestId(requestId);
-        logger.info("----------------------2");
 
         //http response content
         ByteBuf content = null;
@@ -146,7 +144,6 @@ public class HttpApiHandler {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(),
                     HttpResponseStatus.OK, content.retain());
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8");
-            logger.info("----------------------3");
             writeResult(response, result);
             return response;
         } catch (Exception e) {

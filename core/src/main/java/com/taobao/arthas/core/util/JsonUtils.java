@@ -114,28 +114,6 @@ public class JsonUtils {
 
     public static Object fromPbToJsonStr(ClassLoader loader, Object o) {
         if (o != null && o.getClass().getSuperclass().getName().equals("com.google.protobuf.GeneratedMessageV3")) {
-            ByteArrayOutputStream baos = null;
-            ObjectOutputStream oos = null;
-            try {
-                baos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(baos);
-                oos.writeObject(o);
-                oos.flush();
-            } catch (Exception e) {
-                logger.error("fromPbToJsonStr fail", e);
-                return o;
-            } finally {
-                try {
-                    if (oos != null) {
-                        oos.close();
-                    }
-                    if (baos != null) {
-                        baos.close();
-                    }
-                } catch (IOException e) {
-                    logger.error("fromPbToJsonStr fail", e);
-                }
-            }
             try {
                 return new JsonFormat().printToString((Message) o);
             } catch (Exception e) {
